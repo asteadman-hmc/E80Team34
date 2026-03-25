@@ -61,7 +61,7 @@ void DepthControl::surface(z_state_t * state) {
   }
   else { // not at surface yet
     atSurface = 0;
-    uV = -30; // go upward
+    uV = -250; // go upward
   }
   printer.printMessage(surfaceMessage,smTime);
 }
