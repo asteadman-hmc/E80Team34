@@ -19,6 +19,7 @@ Authors:
 #include <SensorIMU.h>
 #include <XYStateEstimator.h>
 #include <ZStateEstimator.h>
+#include <TemperatureSensor.h>
 #include <ADCSampler.h>
 #include <ErrorFlagSampler.h>
 #include <ButtonSampler.h> // A template of a data source library
@@ -34,6 +35,7 @@ Authors:
 MotorDriver motor_driver;
 XYStateEstimator xy_state_estimator;
 ZStateEstimator z_state_estimator;
+TemperatureSensor temperature_sensor;
 DepthControl depth_control;
 SensorGPS gps;
 Adafruit_GPS GPS(&UartSerial);
@@ -58,6 +60,7 @@ void setup() {
   logger.include(&gps);
   logger.include(&xy_state_estimator);
   logger.include(&z_state_estimator);
+  logger.include(&temperature_sensor);
   logger.include(&depth_control);
   logger.include(&motor_driver);
   logger.include(&adc);
@@ -92,6 +95,7 @@ void setup() {
   button_sampler.lastExecutionTime     = loopStartTime - LOOP_PERIOD + BUTTON_LOOP_OFFSET;
   xy_state_estimator.lastExecutionTime = loopStartTime - LOOP_PERIOD + XY_STATE_ESTIMATOR_LOOP_OFFSET;
   z_state_estimator.lastExecutionTime  = loopStartTime - LOOP_PERIOD + Z_STATE_ESTIMATOR_LOOP_OFFSET;
+  temperature_sensor.lastExecutionTime = loopStartTime - LOOP_PERIOD + TEMPERATURE_LOOP_OFFSET;
   depth_control.lastExecutionTime      = loopStartTime - LOOP_PERIOD + DEPTH_CONTROL_LOOP_OFFSET;
   logger.lastExecutionTime             = loopStartTime - LOOP_PERIOD + LOGGER_LOOP_OFFSET;
 
@@ -117,6 +121,7 @@ void loop() {
     printer.printValue(8,motor_driver.printState());
     printer.printValue(9,imu.printRollPitchHeading());        
     printer.printValue(10,imu.printAccels());
+    printer.printValue(11,temperature_sensor.printState());
     printer.printToSerial();  // To stop printing, just comment this line out
   }
 
@@ -180,6 +185,11 @@ void loop() {
   if ( currentTime-xy_state_estimator.lastExecutionTime > LOOP_PERIOD ) {
     xy_state_estimator.lastExecutionTime = currentTime;
     xy_state_estimator.updateState(&imu.state, &gps.state);
+  }
+
+  if ( currentTime-temperature_sensor.lastExecutionTime > LOOP_PERIOD) {
+    temperature_sensor.lastExecutionTime = currentTime;
+    temperature_sensor.updateState(analogRead(TEMPERATURE_PIN));
   }
 
   if ( currentTime-z_state_estimator.lastExecutionTime > LOOP_PERIOD ) {

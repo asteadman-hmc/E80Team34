@@ -40,5 +40,6 @@
 
 // Depth Control
 #define PRESSURE_PIN 14 // Teensy pin A00
+#define TEMPERATURE_PIN 15 // Teensy pin A01
 
 #endif
