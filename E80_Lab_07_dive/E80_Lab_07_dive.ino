@@ -27,6 +27,7 @@ Authors:
 #include <Logger.h>
 #include <Printer.h>
 #include <DepthControl.h>
+#include <BurstADCSampler.h>
 #define UartSerial Serial1
 #include <GPSLockLED.h>
 
@@ -46,6 +47,7 @@ SensorIMU imu;
 Logger logger;
 Printer printer;
 GPSLockLED led;
+BurstADCSampler burst_adc;
 
 // loop start recorder
 int loopStartTime;
@@ -55,6 +57,9 @@ volatile bool EF_States[NUM_FLAGS] = {1,1,1};
 ////////////////////////* Setup *////////////////////////////////
 
 void setup() {
+  
+
+  analogReadAveraging(0);
   
   logger.include(&imu);
   logger.include(&gps);
@@ -76,6 +81,8 @@ void setup() {
   gps.init(&GPS);
   motor_driver.init();
   led.init();
+  burst_adc.init();
+
 
   int diveDelay = 3000; // how long robot will stay at depth waypoint before continuing (ms)
 
@@ -98,15 +105,27 @@ void setup() {
   temperature_sensor.lastExecutionTime = loopStartTime - LOOP_PERIOD + TEMPERATURE_LOOP_OFFSET;
   depth_control.lastExecutionTime      = loopStartTime - LOOP_PERIOD + DEPTH_CONTROL_LOOP_OFFSET;
   logger.lastExecutionTime             = loopStartTime - LOOP_PERIOD + LOGGER_LOOP_OFFSET;
+  burst_adc.lastExecutionTime       = loopStartTime;
 
+  pinMode(SPEAKER_PIN, OUTPUT);
 }
 
 
 
 //////////////////////////////* Loop */////////////////////////
-
+bool toneSet = false;
 void loop() {
+  
   currentTime=millis();
+
+
+  
+  
+  tone(SPEAKER_PIN, 3000);    
+ 
+
+
+
     
   if ( currentTime-printer.lastExecutionTime > LOOP_PERIOD ) {
     printer.lastExecutionTime = currentTime;
@@ -154,6 +173,19 @@ void loop() {
     adc.lastExecutionTime = currentTime;
     adc.updateSample(); 
   }
+
+  // Expiremental burst pin sampling
+// samples at around 7400Hz every 30 seconds
+// stops motors and waits 2 seconds before burst sample
+if ( currentTime-burst_adc.lastExecutionTime > 30000 ) {
+  burst_adc.lastExecutionTime = currentTime;
+  motor_driver.drive(0,0,0);
+  delay(2000);
+  Serial.print("Sampling\n");
+  burst_adc.sample();
+  Serial.print("done\n");
+}
+
 
   if ( currentTime-ef.lastExecutionTime > LOOP_PERIOD ) {
     ef.lastExecutionTime = currentTime;

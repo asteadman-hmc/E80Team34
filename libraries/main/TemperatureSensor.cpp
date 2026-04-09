@@ -16,8 +16,9 @@ void TemperatureSensor::updateState(int temp_signal) {
   float temp_voltage = (double)temp_signal;
   temp_voltage *= (3.3/1023);  // convert from Teensy units to Volts
   float divider_voltage = (9.46 - temp_voltage) / 3.92;
-  float thermistor_R = 500000 / divider_voltage - 100000;
-  float temp_inverse = 1/T0 - log(R0)/B + log(thermistor_R) / B;
+  float R = 500000 / divider_voltage - 100000;
+  float temp_inverse = A1 + vB1*log(R) + C1*pow(log(R),2) + D1*pow(log(R),3); // Steinhart-Hart equation from calibration
+  // float temp_inverse = 1/T0 - log(R0)/B + log(R) / B; // less accurate fit
   state.temp = 1/temp_inverse - 273.15; // convert from Volts to celcius [deg C]
 
   // uncomment the following print statement to calibrate your pressure sensor with the Teensy using the Serial Monitor

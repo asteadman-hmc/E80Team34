@@ -35,7 +35,7 @@
 #define ERROR_FLAG_C 9
 
 // TOF
-#define SPEAKER_PIN 20
+#define SPEAKER_PIN 17 // Teensy pin A03
 #define MIC_PIN 23
 
 // Depth Control
