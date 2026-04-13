@@ -1,0 +1,34 @@
+filenum = 2; % 16 is 440, 17 is 3000
+filename = "datalog" + filenum;
+data = readmatrix(filename);
+
+%%
+t = flip(data(1,:) / 10^6); % 1 is time column
+
+y = flip(data(6,:)); % 6 is A03 (NOTE: use 5 for files before 4/10)
+
+x = y * (3.3/1023);
+
+Fs = 1/mean(diff(t))                % sampling rate 
+%y  = x .* hann(length(y));           % Hanning 
+[X,f] = fdomain(x - mean(x), Fs);              % your function: two-sided + fftshift
+M = abs(X); 
+
+%% plot
+figure(3)
+plot(f, M)
+grid on
+% xlim([0 100e3]) 
+xlabel("Hz")
+ylabel("|X(f)|")
+
+figure(4)
+plot(t,x)
+
+% plot(f,X)
+
+%%
+figure(1)
+clf
+subplot(2,1,1)
+plot(t,data(5,:), t, data(6,:))
